@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>РУЛЕТКА ДЕМОНА — DOOM CASINO</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #0a0000 url('fon/DOOM.gif') no-repeat center center fixed;
+      background-size: cover;
+      color: #ff3333;
+      font-family: 'Press Start 2P', cursive;
+      min-height: 100vh;
+    }
+
+    .overlay {
+      background: linear-gradient(rgba(10, 0, 0, 0.4), rgba(60, 0, 0, 0.8));
+      min-height: 100vh;
+      padding: 0px;
+    }
+
+    header {
+      text-align: center;
+      padding: 25px 0;
+      border-bottom: 6px solid #ff0000;
+      background: rgba(0,0,0,0.9);
+      margin-bottom: 20px;
+    }
+
+    .title {
+      font-size: 2.5rem;
+      color: #ff0000;
+      text-shadow: 0 0 25px #ff0000, 5px 5px 0 #000;
+      letter-spacing: 4px;
+    }
+
+    .balance {
+      position: absolute;
+      top: 25px;
+      right: 25px;
+      background: #000;
+      border: 4px solid #ff0000;
+      padding: 12px 25px;
+      color: #00ff00;
+      font-size: 1.1rem;
+      box-shadow: 0 0 15px #ff0000;
+      z-index: 100;
+    }
+
+    .roulette-container {
+      max-width: 950px;
+      margin: 0 auto 30px;
+      background: #1a0000;
+      border: 10px solid #ff0000;
+      padding: 30px;
+      box-shadow: 0 0 50px rgba(255,0,0,0.8);
+    }
+
+    .wheel-section {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 30px;
+    }
+
+    .wheel-container {
+      width: 520px;
+      height: 520px;
+      position: relative;
+    }
+
+    
+    .rotating-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      transition: transform 4s cubic-bezier(0.25, 0.05, 0.1, 1);
+      z-index: 5;
+    }
+
+    #wheel {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      border: 12px solid #ffd700;
+      position: relative;
+      box-shadow: 0 0 50px #ffaa00, inset 0 0 40px #000;
+    }
+
+    
+    .numbers-layer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    .number-on-wheel {
+      position: absolute;
+      font-family: 'Press Start 2P', cursive;
+      font-size: 12px;
+      font-weight: bold;
+      color: white;
+      text-shadow: 1px 1px 0 black;
+      background: rgba(0, 0, 0, 0.8);
+      padding: 4px 8px;
+      border-radius: 20px;
+      white-space: nowrap;
+      transform: translate(-50%, -50%);
+      z-index: 20;
+      border: 1px solid rgba(255,215,0,0.6);
+      box-shadow: 0 0 5px rgba(0,0,0,0.5);
+    }
+
+    .number-on-wheel.zero {
+      background: #1b5e20;
+      box-shadow: 0 0 8px #00ff00;
+    }
+
+    .number-on-wheel.red {
+      background: #8b0000;
+    }
+
+    .number-on-wheel.black {
+      background: #1a1a1a;
+    }
+
+    .pointer {
+      position: absolute;
+      top: -35px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 45px solid transparent;
+      border-right: 45px solid transparent;
+      border-bottom: 90px solid #ffd700;
+      z-index: 30;
+      filter: drop-shadow(0 0 15px #ff0000);
+    }
+
+    .pointer::after {
+      content: "▼";
+      position: absolute;
+      top: 65px;
+      left: -32px;
+      font-size: 35px;
+      color: #ff0000;
+      text-shadow: 0 0 5px #ffff00;
+    }
+
+    .center-dot {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 70px;
+      height: 70px;
+      background: #000;
+      border: 6px solid #ffd700;
+      border-radius: 50%;
+      z-index: 25;
+      box-shadow: 0 0 20px #ff0000;
+    }
+
+    .controls {
+      text-align: center;
+      margin: 25px 0;
+    }
+
+    button {
+      padding: 12px 20px;
+      margin: 5px;
+      font-family: 'Press Start 2P', cursive;
+      cursor: pointer;
+      border: 3px solid #ff0000;
+      background: #330000;
+      color: #ffaa00;
+      transition: all 0.1s;
+    }
+
+    button:hover {
+      background: #ff0000;
+      color: #ffff00;
+      transform: scale(1.02);
+    }
+
+    button:active {
+      transform: scale(0.98);
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .spin-btn {
+      padding: 18px 60px;
+      font-size: 1.4rem;
+      background: #ff0000;
+      color: #ffff00;
+      border: 6px solid #ffff00;
+      margin: 20px auto;
+      display: block;
+    }
+
+    .bet-buttons button {
+      min-width: 90px;
+    }
+
+    .red {
+      background: #aa0000;
+      color: #ffcccc;
+    }
+
+    .black {
+      background: #222222;
+      color: #ffaa66;
+    }
+
+    .zero {
+      background: #006600;
+      color: #00ff00;
+    }
+
+    #result {
+      font-size: 1.5rem;
+      margin: 20px 0;
+      min-height: 80px;
+      text-align: center;
+    }
+
+    .win { 
+      color: #00ff00; 
+      text-shadow: 0 0 15px #00ff00;
+      animation: winFlash 0.5s ease 3;
+    }
+    
+    .lose { color: #ff6666; text-shadow: 0 0 10px #ff0000; }
+
+    @keyframes winFlash {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.7; transform: scale(1.05); }
+    }
+
+    .history {
+      margin-top: 30px;
+      background: rgba(0,0,0,0.6);
+      padding: 15px;
+      max-height: 180px;
+      overflow-y: auto;
+      border: 3px solid #330000;
+    }
+
+    .history-item {
+      padding: 8px;
+      border-bottom: 1px solid #330000;
+      font-size: 0.7rem;
+    }
+
+    .back-btn {
+      display: inline-block;
+      margin-top: 20px;
+      padding: 12px 25px;
+      background: #330000;
+      color: #ffaa00;
+      text-decoration: none;
+      border: 3px solid #ff0000;
+      font-size: 0.8rem;
+    }
+
+    .back-btn:hover {
+      background: #ff0000;
+      color: #000;
+    }
+
+    #numbers {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 6px;
+      max-width: 500px;
+      margin: 15px auto;
+    }
+
+    .number-btn {
+      padding: 8px;
+      font-size: 0.8rem;
+      min-width: auto;
+    }
+
+    .active-bet {
+      background: #ffaa00 !important;
+      color: #330000 !important;
+      border-color: #ffff00 !important;
+      box-shadow: 0 0 15px #ffaa00;
+    }
+
+    .current-bet-info {
+      background: #000000aa;
+      padding: 10px;
+      border-radius: 10px;
+      margin-bottom: 15px;
+      font-size: 0.8rem;
+    }
+
+    @media (max-width: 768px) {
+      .wheel-container { width: 320px; height: 320px; }
+      .number-on-wheel { font-size: 8px; padding: 2px 5px; }
+      .pointer { top: -25px; border-left: 30px solid transparent; border-right: 30px solid transparent; border-bottom: 60px solid #ffd700; }
+      .pointer::after { top: 42px; left: -22px; font-size: 24px; }
+      .center-dot { width: 45px; height: 45px; }
+      .title { font-size: 1.5rem; }
+      .balance { font-size: 0.8rem; padding: 6px 12px; top: 10px; right: 10px; }
+      .spin-btn { padding: 12px 30px; font-size: 1rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="overlay">
+    <header>
+      <div class="title">РУЛЕТКА ДЕМОНА</div>
+    </header>
+
+    <div class="balance">
+      БАЛАНС: <span id="balance">666</span> ₽
+    </div>
+
+    <div class="roulette-container">
+      <div class="wheel-section">
+        <div class="wheel-container">
+          <!-- Контейнер, который будет вращаться (вместе с колесом и числами) -->
+          <div class="rotating-container" id="rotatingContainer">
+            <div id="wheel"></div>
+            <div class="numbers-layer" id="numbersLayer"></div>
+          </div>
+          <div class="pointer"></div>
+          <div class="center-dot"></div>
+        </div>
+      </div>
+
+      <div class="controls">
+        <div class="current-bet-info">
+          СТАВКА: <span id="currentBet">250</span> ₽
+          <span style="margin-left: 20px;">СТАВКА: <span id="betTypeDisplay">НЕ ВЫБРАНА</span></span>
+        </div>
+        
+        <div class="bet-buttons">
+          <button onclick="setBet(100)">100 ₽</button>
+          <button onclick="setBet(250)">250 ₽</button>
+          <button onclick="setBet(500)">500 ₽</button>
+          <button onclick="setBet(1000)">1000 ₽</button>
+          <button onclick="setBet(2000)">2000 ₽</button>
+        </div>
+
+        <div style="margin: 20px 0;">
+          <button onclick="placeBet('red')" class="red" id="betRed">🔴 КРАСНОЕ (×2)</button>
+          <button onclick="placeBet('black')" class="black" id="betBlack">⚫ ЧЁРНОЕ (×2)</button>
+          <button onclick="placeBet('zero')" class="zero" id="betZero">🟢 0 (×35)</button>
+        </div>
+
+        <div style="margin: 15px 0; color:#ffaa00; font-size:0.8rem;">🎲 ИЛИ ВЫБЕРИ ЧИСЛО (×35):</div>
+        <div id="numbers"></div>
+      </div>
+
+      <button class="spin-btn" id="spinBtn">ЗАПУСТИТЬ КОЛЕСО АДА </button>
+      
+      <div id="result"></div>
+
+      <div class="history">
+        <strong>ИСТОРИЯ ИГР:</strong>
+        <div id="history"></div>
+      </div>
+    </div>
+
+    <center>
+      <a href="index.html" class="back-btn">← ВЕРНУТЬСЯ В ПРЕИСПОДНЮЮ</a>
+    </center>
+  </div>
+
+  <script src="js/auth.js"></script>
+  <script src="js/balance.js"></script>
+
+  <script>
+    // Порядок чисел на европейской рулетке
+    const wheelNumbers = [0, 32, 15, 19, 4, 21, 2, 25, 17, 34, 6, 27, 13, 36, 11, 30, 8, 23, 10, 5, 24, 16, 33, 1, 20, 14, 31, 9, 22, 18, 29, 7, 28, 12, 35, 3, 26];
+    
+    let currentBetAmount = 250;
+    let currentBetType = null;
+    let isSpinning = false;
+    let history = [];
+
+    const redNumbers = [1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36];
+    
+    function isRed(n) { return redNumbers.includes(n); }
+    
+    function getNumberColor(n) {
+      if (n === 0) return '#2e7d32';
+      return isRed(n) ? '#c62828' : '#2c2c2c';
+    }
+
+    // Создание колеса с цветными секторами
+    function createWheel() {
+      const wheel = document.getElementById('wheel');
+      wheel.innerHTML = '';
+      
+      const total = wheelNumbers.length;
+      const angleStep = 360 / total;
+      
+     
+      let gradient = 'conic-gradient(';
+      for (let i = 0; i < total; i++) {
+        const color = getNumberColor(wheelNumbers[i]);
+        const start = i * angleStep;
+        const end = (i + 1) * angleStep;
+        gradient += `${color} ${start}deg ${end}deg`;
+        if (i < total - 1) gradient += ', ';
+      }
+      gradient += ')';
+      wheel.style.background = gradient;
+      
+      
+      for (let i = 0; i < total; i++) {
+        const line = document.createElement('div');
+        const angle = i * angleStep;
+        line.style.position = 'absolute';
+        line.style.left = '50%';
+        line.style.top = '50%';
+        line.style.width = '3px';
+        line.style.height = '50%';
+        line.style.backgroundColor = '#ffd700';
+        line.style.transformOrigin = '0% 0%';
+        line.style.transform = `rotate(${angle}deg)`;
+        line.style.zIndex = '5';
+        wheel.appendChild(line);
+      }
+    }
+
+    
+    function placeNumbersOnWheel() {
+      const container = document.getElementById('numbersLayer');
+      container.innerHTML = '';
+      
+      const total = wheelNumbers.length;
+      const angleStep = 360 / total;
+      const containerWidth = 520;
+      const radius = 210;
+      
+      wheelNumbers.forEach((num, index) => {
+        const angle = index * angleStep + angleStep / 2;
+        const radian = (angle - 90) * Math.PI / 180;
+        
+        const x = 50 + (Math.cos(radian) * radius) / (containerWidth / 100);
+        const y = 50 + (Math.sin(radian) * radius) / (containerWidth / 100);
+        
+        const numberDiv = document.createElement('div');
+        numberDiv.className = 'number-on-wheel';
+        
+        if (num === 0) numberDiv.classList.add('zero');
+        else if (isRed(num)) numberDiv.classList.add('red');
+        else numberDiv.classList.add('black');
+        
+        numberDiv.textContent = num;
+        numberDiv.style.left = `${x}%`;
+        numberDiv.style.top = `${y}%`;
+        
+        
+        numberDiv.style.transform = `translate(-50%, -50%) rotate(${angle + 90}deg)`;
+        
+        container.appendChild(numberDiv);
+      });
+    }
+
+    
+    function createNumberButtons() {
+      const container = document.getElementById('numbers');
+      container.innerHTML = '';
+      
+      for (let i = 0; i <= 36; i++) {
+        const btn = document.createElement('button');
+        if (i === 0) {
+          btn.className = 'number-btn zero';
+          btn.style.background = '#006600';
+        } else if (isRed(i)) {
+          btn.className = 'number-btn red';
+          btn.style.background = '#aa0000';
+        } else {
+          btn.className = 'number-btn black';
+          btn.style.background = '#222222';
+        }
+        btn.textContent = i;
+        btn.onclick = () => placeBet(i);
+        container.appendChild(btn);
+      }
+    }
+
+    function setBet(amount) {
+      currentBetAmount = amount;
+      document.getElementById('currentBet').textContent = amount;
+    }
+
+    function clearActiveBets() {
+      document.querySelectorAll('.bet-buttons button, .number-btn').forEach(btn => {
+        btn.classList.remove('active-bet');
+      });
+    }
+
+    function placeBet(type) {
+      if (isSpinning) return;
+      clearActiveBets();
+      currentBetType = type;
+      
+      let displayText = '';
+      let activeElement = null;
+      
+      if (type === 'red') {
+        displayText = '🔴 КРАСНОЕ';
+        activeElement = document.getElementById('betRed');
+      } else if (type === 'black') {
+        displayText = '⚫ ЧЁРНОЕ';
+        activeElement = document.getElementById('betBlack');
+      } else if (type === 'zero') {
+        displayText = '🟢 0';
+        activeElement = document.getElementById('betZero');
+      } else if (typeof type === 'number') {
+        displayText = `ЧИСЛО ${type}`;
+        const btns = document.querySelectorAll('.number-btn');
+        for (let btn of btns) {
+          if (btn.textContent == type) {
+            activeElement = btn;
+            break;
+          }
+        }
+      }
+      
+      if (activeElement) activeElement.classList.add('active-bet');
+      document.getElementById('betTypeDisplay').textContent = displayText;
+      document.getElementById('result').innerHTML = `<span style="color:#ffff00">🔥 СТАВКА ПРИНЯТА: ${displayText} — ${currentBetAmount} ₽</span>`;
+    }
+
+    
+    function playSound(url, volume = 0.3) {
+      try {
+        const audio = new Audio(url);
+        audio.volume = volume;
+        audio.play().catch(e => console.log("Sound blocked"));
+      } catch(e) {}
+    }
+
+    function addToHistory(number, winAmount, betAmount) {
+      history.unshift({ number, winAmount, betAmount });
+      if (history.length > 12) history.pop();
+      
+      const histDiv = document.getElementById('history');
+      histDiv.innerHTML = '';
+      
+      history.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'history-item';
+        const color = item.number === 0 ? '#00ff00' : isRed(item.number) ? '#ff6666' : '#aaaaaa';
+        const profit = item.winAmount - item.betAmount;
+        div.innerHTML = `🎰 Выпало <span style="color:${color}; font-weight:bold">${item.number}</span> — 
+                         <span style="color:${profit >= 0 ? '#00ff00' : '#ff6666'}">
+                         ${profit >= 0 ? '+' : ''}${profit} ₽</span>
+                         <span style="font-size:0.6rem; color:#ffaa66"> (ставка: ${item.betAmount}₽)</span>`;
+        histDiv.appendChild(div);
+      });
+    }
+
+    async function spinRoulette() {
+      if (isSpinning) {
+        document.getElementById('result').innerHTML = `<span class="lose">⏳ КОЛЕСО УЖЕ КРУТИТСЯ...</span>`;
+        return;
+      }
+      
+      if (!currentBetType) {
+        document.getElementById('result').innerHTML = `<span class="lose">⚠️ СДЕЛАЙ СТАВКУ ПРЕЖДЕ ЧЕМ КРУТИТЬ!</span>`;
+        return;
+      }
+      
+      if (typeof subtractBalance !== 'function') {
+        document.getElementById('result').innerHTML = `<span class="lose">💀 ОШИБКА СИСТЕМЫ!</span>`;
+        return;
+      }
+      
+      if (!subtractBalance(currentBetAmount)) {
+        document.getElementById('result').innerHTML = `<span class="lose">💀 НЕДОСТАТОЧНО КРОВИ!</span>`;
+        return;
+      }
+      
+      isSpinning = true;
+      const spinBtn = document.getElementById('spinBtn');
+      spinBtn.disabled = true;
+      
+      document.getElementById('result').innerHTML = `<span style="color:#ffaa00;">🌀 ДЕМОН КРУТИТ КОЛЕСО... 🌀</span>`;
+      
+      playSound('sound/dsvilsit.mp3', 0.25);
+      
+      const rotatingContainer = document.getElementById('rotatingContainer');
+      
+     
+      const landedNumber = Math.floor(Math.random() * 37);
+      const totalNumbers = wheelNumbers.length;
+      const anglePerNumber = 360 / totalNumbers;
+      
+      
+      const landedIndex = wheelNumbers.indexOf(landedNumber);
+      
+    
+      const targetSectorCenterAngle = landedIndex * anglePerNumber + anglePerNumber / 2;
+      
+   
+      const extraSpins = 8 + Math.random() * 5;
+      const finalRotation = extraSpins * 360 + (360 - targetSectorCenterAngle) + 90;
+      
+      
+      rotatingContainer.style.transform = `rotate(${finalRotation}deg)`;
+      
+      setTimeout(() => {
+        let winAmount = 0;
+        
+        if (currentBetType === 'red' && isRed(landedNumber) && landedNumber !== 0) {
+          winAmount = currentBetAmount * 2;
+        } else if (currentBetType === 'black' && !isRed(landedNumber) && landedNumber !== 0) {
+          winAmount = currentBetAmount * 2;
+        } else if (currentBetType === 'zero' && landedNumber === 0) {
+          winAmount = currentBetAmount * 35;
+        } else if (typeof currentBetType === 'number' && currentBetType === landedNumber) {
+          winAmount = currentBetAmount * 35;
+        }
+        
+        if (winAmount > 0) {
+          if (typeof addBalance === 'function') {
+            addBalance(winAmount);
+          }
+          playSound('sound/dsvildth (1).mp3', 0.5);
+          
+          const numberColor = landedNumber === 0 ? '#00ff00' : (isRed(landedNumber) ? '#ff6666' : '#ffffff');
+          document.getElementById('result').innerHTML = 
+            `<span class="win">ПОБЕДА! ВЫПАЛО <span style="color:${numberColor}; font-size:1.8rem;">${landedNumber}</span> 🔥 +${winAmount} ₽</span>`;
+        } else {
+          document.getElementById('result').innerHTML = 
+            `<span class="lose">АД ЗАБРАЛ СТАВКУ... ВЫПАЛО ${landedNumber}</span>`;
+        }
+        
+        addToHistory(landedNumber, winAmount, currentBetAmount);
+        
+        isSpinning = false;
+        spinBtn.disabled = false;
+        
+      }, 4000);
+    }
+
+    // Инициализация
+    window.onload = function() {
+      if (typeof getCurrentUser === 'function' && !getCurrentUser()) {
+        window.location.href = "login.html";
+        return;
+      }
+      
+      createWheel();
+      placeNumbersOnWheel();
+      createNumberButtons();
+      
+      const spinBtn = document.getElementById('spinBtn');
+      spinBtn.addEventListener('click', spinRoulette);
+      
+      
+      setTimeout(() => {
+        if (typeof subtractBalance !== 'function') {
+          let localBalance = 666;
+          const balanceSpan = document.getElementById('balance');
+          window.subtractBalance = function(amount) {
+            if (localBalance >= amount) {
+              localBalance -= amount;
+              if (balanceSpan) balanceSpan.innerText = localBalance;
+              return true;
+            }
+            return false;
+          };
+          window.addBalance = function(amount) {
+            localBalance += amount;
+            if (balanceSpan) balanceSpan.innerText = localBalance;
+          };
+        }
+      }, 200);
+    };
+  </script>
+</body>
+</html>

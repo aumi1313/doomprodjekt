@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>СЛОТЫ АДА — DOOM CASINO</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #0a0000 url('fon/DOOM.gif') no-repeat center center fixed;
+      background-size: cover;
+      color: #ff3333;
+      font-family: 'Press Start 2P', cursive;
+      min-height: 100vh;
+    }
+
+    .overlay {
+      background: linear-gradient(rgba(15, 0, 0, 0.4), rgba(50, 0, 0, 0.5));
+      min-height: 100vh;
+      padding: 0px;
+    }
+
+    header {
+      text-align: center;
+      padding: 20px 0;
+      border-bottom: 5px solid #ff0000;
+      background: rgba(0,0,0,0.9);
+    }
+
+    .title {
+      font-size: 3rem;
+      color: #ff0000;
+      text-shadow: 0 0 20px #ff0000, 4px 4px 0 #000;
+      letter-spacing: 6px;
+    }
+
+    .balance {
+      position: absolute;
+      top: 25px;
+      right: 25px;
+      background: #000;
+      border: 4px solid #ff0000;
+      padding: 12px 25px;
+      color: #00ff00;
+      font-size: 1.2rem;
+      box-shadow: 0 0 15px #ff0000;
+    }
+
+    .slot-machine {
+      max-width: 920px;
+      margin: 40px auto;
+      background: #1a0000;
+      border: 8px solid #ff0000;
+      border-top-color: #ffff00;
+      border-left-color: #ffff00;
+      padding: 30px 20px;
+      box-shadow: 0 0 40px rgba(255, 0, 0, 0.8);
+    }
+
+    .reels-container {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 10px;
+      background: #000;
+      padding: 25px;
+      border: 6px solid #330000;
+      margin-bottom: 30px;
+    }
+
+    .reel {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      background: #220000;
+      border: 4px solid #ff8800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      box-shadow: inset 0 0 20px rgba(255,0,0,0.7);
+      transition: all 0.05s linear;
+    }
+
+    /* Подсветка выигрышных слотов */
+    .reel.winning {
+      border: 4px solid #00ff00;
+      box-shadow: 0 0 20px #00ff00, inset 0 0 20px #00ff00;
+      animation: winPulse 0.4s ease-in-out 3;
+    }
+
+    @keyframes winPulse {
+      0% { border-color: #00ff00; box-shadow: 0 0 10px #00ff00; }
+      50% { border-color: #ffff00; box-shadow: 0 0 30px #ffff00; }
+      100% { border-color: #00ff00; box-shadow: 0 0 10px #00ff00; }
+    }
+
+    .reel img {
+      width: 92%;
+      height: 92%;
+      object-fit: contain;
+      image-rendering: pixelated;
+    }
+
+    button {
+      padding: 20px 70px;
+      font-size: 1.7rem;
+      background: #ff0000;
+      color: #ffff00;
+      border: 6px solid #ffff00;
+      font-family: 'Press Start 2P', cursive;
+      cursor: pointer;
+      margin: 15px auto;
+      display: block;
+      box-shadow: 0 0 20px #ffff00;
+      transition: all 0.1s;
+    }
+
+    button:hover {
+      background: #ffff00;
+      color: #ff0000;
+      transform: scale(1.05);
+    }
+
+    button:active {
+      transform: scale(0.98);
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    #result {
+      margin-top: 25px;
+      font-size: 1.9rem;
+      min-height: 80px;
+      text-align: center;
+    }
+
+    .win { color: #00ff00; text-shadow: 0 0 15px #00ff00; }
+    .lose { color: #ff6666; text-shadow: 0 0 10px #ff0000; }
+
+    .back-btn {
+      display: inline-block;
+      margin-top: 30px;
+      padding: 15px 30px;
+      background: #330000;
+      color: #ffaa00;
+      text-decoration: none;
+      border: 3px solid #ff0000;
+      font-size: 1rem;
+    }
+
+    .back-btn:hover {
+      background: #ff0000;
+      color: #000;
+    }
+
+    /* Правила игры */
+    .rules {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 0.7rem;
+      color: #ffaa66;
+      background: rgba(0,0,0,0.6);
+      padding: 10px;
+      border-radius: 8px;
+    }
+
+    .rules span {
+      color: #ff0000;
+    }
+  </style>
+</head>
+<body>
+  <div class="overlay">
+    <header>
+      <div class="title">СЛОТЫ АДА</div>
+    </header>
+
+    <div class="balance">
+      БАЛАНС: <span id="balance">6660</span> ₽
+    </div>
+
+    <div class="slot-machine">
+      <div class="reels-container" id="reels">
+        <!-- 15 слотов создаются через JS -->
+      </div>
+
+      <button id="spinButton">КРУТИТЬ АД (250 ₽)</button>
+      <div id="result"></div>
+      
+      
+    </div>
+
+    <center>
+      <a href="index.html" class="back-btn">← ВЕРНУТЬСЯ В ПРЕИСПОДНЮЮ</a>
+    </center>
+  </div>
+
+  
+  <script src="js/auth.js"></script>
+  <script src="js/balance.js"></script>
+  
+  <script>
+    
+    const monsterImages = [
+      "slot/baron-of-hell.png",
+      "slot/cyberdemon.png",
+      "slot/cacodemon.png",
+      "slot/lost-soul.png",
+      "slot/pinky.png",
+      "slot/spiderdemon.png",
+      "slot/mancubus.png",
+      "slot/pain-elemental.png"
+    ];
+
+    
+    const WIN_PRIZES = {
+      3: 500,
+      4: 1200,
+      5: 3000
+    };
+
+    const BET = 250;
+    let isSpinning = false;
+
+    // Создание 3x5 слотов
+    function createReels() {
+      const container = document.getElementById('reels');
+      container.innerHTML = '';
+
+      for (let i = 0; i < 15; i++) {
+        const reel = document.createElement('div');
+        reel.className = 'reel';
+
+        const img = document.createElement('img');
+        // Начальное случайное изображение
+        img.src = monsterImages[Math.floor(Math.random() * monsterImages.length)];
+        
+        reel.appendChild(img);
+        container.appendChild(reel);
+      }
+    }
+
+    
+    function getCurrentMatrix() {
+      const images = document.querySelectorAll('.reel img');
+      const matrix = [];
+      for (let row = 0; row < 3; row++) {
+        const rowData = [];
+        for (let col = 0; col < 5; col++) {
+          rowData.push(images[row * 5 + col].src);
+        }
+        matrix.push(rowData);
+      }
+      return matrix;
+    }
+
+    
+    function findBestSequence(row) {
+      if (!row.length) return { length: 0, startIndex: -1, monster: null };
+      
+      let maxLength = 1;
+      let currentLength = 1;
+      let bestStart = 0;
+      let currentStart = 0;
+      
+      for (let i = 1; i < row.length; i++) {
+        if (row[i] === row[i-1]) {
+          currentLength++;
+          if (currentLength > maxLength) {
+            maxLength = currentLength;
+            bestStart = currentStart;
+          }
+        } else {
+          currentLength = 1;
+          currentStart = i;
+        }
+      }
+      
+      
+      if (maxLength >= 3) {
+        return { 
+          length: maxLength, 
+          startIndex: bestStart, 
+          monster: row[bestStart] 
+        };
+      }
+      return { length: 0, startIndex: -1, monster: null };
+    }
+
+    
+    function highlightWinningSlots(winningRowsInfo) {
+      // Сначала убираем подсветку со всех
+      const allReels = document.querySelectorAll('.reel');
+      allReels.forEach(reel => {
+        reel.classList.remove('winning');
+      });
+      
+      
+      winningRowsInfo.forEach(info => {
+        for (let col = info.startIndex; col < info.startIndex + info.length; col++) {
+          const index = info.row * 5 + col;
+          const reel = document.querySelectorAll('.reel')[index];
+          if (reel) {
+            reel.classList.add('winning');
+          }
+        }
+      });
+    }
+
+    function checkWins() {
+      const matrix = getCurrentMatrix();
+      const winningRows = [];
+      let totalWin = 0;
+      
+      // Проверяем каждый из 3 рядов
+      for (let row = 0; row < 3; row++) {
+        const sequence = findBestSequence(matrix[row]);
+        
+        if (sequence.length >= 3) {
+          winningRows.push({
+            row: row,
+            length: sequence.length,
+            startIndex: sequence.startIndex,
+            monster: sequence.monster
+          });
+          
+          
+          totalWin += WIN_PRIZES[sequence.length];
+        }
+      }
+      
+      
+      highlightWinningSlots(winningRows);
+      
+      return { totalWin, winningRows };
+    }
+
+    // Анимация вращения с эффектом прокрутки
+    function spinAnimation(duration = 500) {
+      return new Promise((resolve) => {
+        const allImages = document.querySelectorAll('.reel img');
+        const startTime = performance.now();
+        const frameInterval = 60; 
+        
+        function animateSpin(currentTime) {
+          const elapsed = currentTime - startTime;
+          
+          
+          allImages.forEach(img => {
+            const randomIndex = Math.floor(Math.random() * monsterImages.length);
+            img.src = monsterImages[randomIndex];
+          });
+          
+          if (elapsed < duration) {
+            requestAnimationFrame(animateSpin);
+          } else {
+            resolve();
+          }
+        }
+        
+        requestAnimationFrame(animateSpin);
+      });
+    }
+
+    
+    function generateFinalCombination() {
+      const allImages = document.querySelectorAll('.reel img');
+      
+      // Просто рандомная генерация для честности
+      for (let i = 0; i < allImages.length; i++) {
+        const randomIndex = Math.floor(Math.random() * monsterImages.length);
+        allImages[i].src = monsterImages[randomIndex];
+      }
+    }
+
+    
+    function playSound(url, volume = 0.5) {
+      try {
+        const audio = new Audio(url);
+        audio.volume = volume;
+        audio.play().catch(e => console.log("Sound play blocked:", e));
+      } catch(e) {}
+    }
+
+   
+    async function spin() {
+      
+      if (isSpinning) {
+        document.getElementById('result').innerHTML = `<span class="lose">АДСКИЕ БАРАБАНЫ ЕЩЁ КРУТЯТСЯ!</span>`;
+        return;
+      }
+      
+      
+      if (typeof subtractBalance !== 'function') {
+        console.error("balance.js не загружен");
+        document.getElementById('result').innerHTML = `<span class="lose">ОШИБКА СИСТЕМЫ АДА!</span>`;
+        return;
+      }
+      
+      if (!subtractBalance(BET)) {
+        document.getElementById('result').innerHTML = `<span class="lose">НЕДОСТАТОЧНО КРОВИ В АДУ!</span>`;
+        return;
+      }
+      
+      isSpinning = true;
+      const spinBtn = document.getElementById('spinButton');
+      spinBtn.disabled = true;
+      
+      
+      document.getElementById('result').innerHTML = `<span style="color:#ffaa00;">🔄 АДСКОЕ ВРАЩЕНИЕ... 🔄</span>`;
+      
+      
+      const allReels = document.querySelectorAll('.reel');
+      allReels.forEach(reel => {
+        reel.classList.remove('winning');
+      });
+      
+      
+      playSound('sound/Voicy_Machine gun sound effect.mp3', 0.45);
+      
+      
+      await spinAnimation(450);
+      
+      
+      generateFinalCombination();
+      
+      
+      const { totalWin, winningRows } = checkWins();
+      
+      if (totalWin > 0) {
+       
+        if (typeof addBalance === 'function') {
+          addBalance(totalWin);
+        }
+        
+       
+        let winMessage = '';
+        winningRows.forEach(row => {
+          winMessage += `Ряд ${row.row + 1}: ${row.length} монстра(ов)! `;
+        });
+        
+        document.getElementById('result').innerHTML = `<span class="win">АДСКИЙ ВЫИГРЫШ! +${totalWin} ₽ <br><span style="font-size:0.8rem;">${winMessage}</span></span>`;
+        
+        
+        playSound('sound/dsbosdth.mp3', 0.7);
+      } else {
+        document.getElementById('result').innerHTML = `<span class="lose">АД ЗАБРАЛ ТВОЮ ДУШУ...</span>`;
+      }
+      
+      
+      isSpinning = false;
+      spinBtn.disabled = false;
+    }
+
+    
+    window.onload = function() {
+      createReels();
+      
+      
+      const spinBtn = document.getElementById('spinButton');
+      if (spinBtn) {
+        spinBtn.addEventListener('click', spin);
+      }
+      
+      
+      setTimeout(() => {
+        if (typeof subtractBalance !== 'function') {
+          console.warn("balance.js не загружен, создаём локальный баланс");
+          // Создаём локальный баланс как fallback
+          let localBalance = 6660;
+          const balanceSpan = document.getElementById('balance');
+          
+          window.subtractBalance = function(amount) {
+            if (localBalance >= amount) {
+              localBalance -= amount;
+              if (balanceSpan) balanceSpan.innerText = localBalance;
+              return true;
+            }
+            return false;
+          };
+          
+          window.addBalance = function(amount) {
+            localBalance += amount;
+            if (balanceSpan) balanceSpan.innerText = localBalance;
+          };
+        }
+      }, 200);
+    };
+  </script>
+</body>
+</html>
