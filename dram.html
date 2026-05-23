@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>DOOM GRUNT DRUM SYNTH</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            background: #0a0a0a;
+            font-family: 'Courier New', 'Orbitron', monospace;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            position: relative;
+        }
+
+        
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 30% 20%, rgba(255, 0, 51, 0.12) 0%, transparent 60%),
+                radial-gradient(circle at 70% 80%, rgba(0, 240, 255, 0.08) 0%, transparent 60%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .synth-container {
+            max-width: 1400px;
+            width: 100%;
+            background: rgba(10, 10, 10, 0.85);
+            backdrop-filter: blur(2px);
+            border: 2px solid #ff0033;
+            border-radius: 32px;
+            box-shadow: 0 0 40px rgba(255, 0, 51, 0.3), inset 0 0 20px rgba(0, 0, 0, 0.6);
+            padding: 20px 24px 30px;
+            transition: all 0.3s ease;
+        }
+
+        h1 {
+            font-size: 1.9rem;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            font-weight: 800;
+            background: linear-gradient(90deg, #ff0033, #ff4700, #ff0033);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 20px rgba(255, 0, 51, 0.5);
+            margin: 0 0 5px 0;
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+            border-bottom: 2px solid #ff0033;
+            padding-bottom: 10px;
+        }
+        .sub {
+            font-size: 0.75rem;
+            color: #ff4700;
+            font-family: monospace;
+            letter-spacing: 1px;
+            text-shadow: 0 0 5px #ff4700;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 4px 10px;
+            border-radius: 20px;
+        }
+
+        .control-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            align-items: center;
+            justify-content: space-between;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 60px;
+            padding: 10px 20px;
+            margin: 20px 0;
+            border: 1px solid #ff0033;
+            box-shadow: 0 0 15px rgba(255, 0, 51, 0.2);
+        }
+        .tempo-area, .volume-area {
+            display: flex;
+            gap: 15px;
+            align-items: baseline;
+            background: #0a0a0a;
+            padding: 5px 15px;
+            border-radius: 40px;
+            border: 1px solid #ff4700;
+            box-shadow: inset 0 0 5px rgba(0,240,255,0.2);
+        }
+        .tempo-area label, .volume-area label {
+            font-weight: bold;
+            color: #ff4700;
+            font-size: 1.1rem;
+            text-shadow: 0 0 3px #ff4700;
+        }
+        #bpmSlider, #masterVolumeSlider {
+            width: 140px;
+            cursor: pointer;
+            background: #1a1a1a;
+            accent-color: #ff0033;
+        }
+        #bpmValue, #masterVolumeValue {
+            background: #0f0f0f;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-family: monospace;
+            font-weight: bold;
+            color: #ff6a33;
+            min-width: 55px;
+            text-align: center;
+            border: 1px solid #ff0033;
+            box-shadow: 0 0 5px rgba(255,0,51,0.3);
+        }
+        button {
+            background: rgba(26, 0, 0, 0.9);
+            border: 2px solid #ff0033;
+            color: #ff0033;
+            font-weight: bold;
+            padding: 8px 20px;
+            border-radius: 40px;
+            font-family: 'Courier New', monospace;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 2px 5px black;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        button:active {
+            transform: scale(0.96);
+            background: #ff0033;
+            color: #0f0f0f;
+            box-shadow: 0 0 20px #ff0033;
+        }
+        .play-stop {
+            background: #2a0505;
+            min-width: 100px;
+            font-size: 1.2rem;
+            border-color: #ff4700;
+            color: #ff4700;
+        }
+        .enable-audio {
+            border-color: #ff4700;
+            color: #ff4700;
+        }
+
+        .pads-section {
+            margin: 20px 0 15px;
+        }
+        .pads-title {
+            color: #ff4700;
+            font-size: 1.2rem;
+            letter-spacing: 2px;
+            margin-bottom: 12px;
+            border-left: 4px solid #ff0033;
+            padding-left: 15px;
+            text-transform: uppercase;
+            font-weight: bold;
+            text-shadow: 0 0 4px #ff4700;
+        }
+        .pads-row {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            justify-content: flex-start;
+            margin-bottom: 25px;
+        }
+        .drum-pad {
+            background: #0a0a0a;
+            border: 2px solid #ff0033;
+            border-radius: 20px;
+            padding: 12px 20px;
+            text-align: center;
+            flex: 1;
+            min-width: 100px;
+            cursor: pointer;
+            transition: all 0.05s linear;
+            box-shadow: 0 5px 0 #3a0000;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #ff6a33;
+        }
+        .drum-pad:active {
+            transform: translateY(3px);
+            box-shadow: 0 1px 0 #3a0000;
+            background: #ff0033;
+            color: #0f0f0f;
+        }
+        .badge2 {
+            font-size: 0.7rem;
+            background: #ff0033;
+            display: inline-block;
+            border-radius: 20px;
+            padding: 2px 8px;
+            margin-left: 8px;
+            vertical-align: middle;
+            color: #0f0f0f;
+            box-shadow: 0 0 5px #ff0033;
+        }
+
+        .sequencer-section {
+            margin: 25px 0 15px;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(3px);
+            border-radius: 28px;
+            padding: 12px;
+            border: 1px solid #ff0033;
+            box-shadow: 0 0 20px rgba(255, 0, 51, 0.2);
+        }
+        .seq-title {
+            color: #ff4700;
+            font-size: 1.1rem;
+            margin-bottom: 12px;
+            letter-spacing: 2px;
+            font-weight: bold;
+            text-shadow: 0 0 3px #ff4700;
+        }
+        .track-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 40px;
+            padding: 5px 10px;
+        }
+        .track-label {
+            width: 85px;
+            font-weight: bold;
+            font-size: 1rem;
+            color: #ff0033;
+            text-shadow: 0 0 5px #ff0033;
+            letter-spacing: 2px;
+        }
+        .steps {
+            display: flex;
+            flex-wrap: nowrap;
+            gap: 6px;
+            overflow-x: auto;
+            padding: 8px 5px;
+            flex: 1;
+        }
+        .step {
+            width: 38px;
+            height: 38px;
+            background: #1a1a1a;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.05s linear;
+            border: 1px solid #ff0033;
+            box-shadow: 0 0 5px rgba(255,0,51,0.3);
+        }
+        .step.active {
+            background: #ff0033;
+            box-shadow: 0 0 15px #ff0033;
+            border-color: #ff6699;
+        }
+        .step.current {
+            border: 3px solid #ff4700;
+            background: #2a2a2a;
+            transform: scale(1.02);
+            box-shadow: 0 0 12px #ff4700;
+        }
+        .step.current.active {
+            background: #ff3366;
+            border-color: #ffffff;
+        }
+
+        .param-panels {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 18px;
+            margin-top: 35px;
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 28px;
+            padding: 18px;
+            border: 1px solid #ff4700;
+            box-shadow: 0 0 15px rgba(0,240,255,0.2);
+        }
+        .param-card {
+            background: rgba(10, 10, 10, 0.9);
+            border-radius: 24px;
+            padding: 12px 16px;
+            border-left: 4px solid #ff0033;
+            border-right: 1px solid #ff0033;
+            border-bottom: 1px solid #ff0033;
+        }
+        .param-card h3 {
+            margin: 0 0 12px 0;
+            font-size: 1.1rem;
+            color: #ff4700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .slider-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            margin-bottom: 12px;
+        }
+        .slider-group label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            color: #ff6a33;
+            letter-spacing: 1px;
+        }
+        input[type="range"] {
+            width: 100%;
+            cursor: pointer;
+            background: #2c2c30;
+            height: 5px;
+            border-radius: 5px;
+            accent-color: #ff0033;
+        }
+        .param-value {
+            font-size: 0.7rem;
+            text-align: right;
+            color: #ff4700;
+            font-family: monospace;
+        }
+        footer {
+            margin-top: 25px;
+            text-align: center;
+            font-size: 0.7rem;
+            color: #ff4700;
+            border-top: 1px solid #ff0033;
+            padding-top: 15px;
+            text-shadow: 0 0 2px #ff0033;
+        }
+        @media (max-width: 760px) {
+            .steps { gap: 4px; }
+            .step { width: 28px; height: 28px; }
+            .track-label { width: 70px; font-size: 0.8rem; }
+            .synth-container { padding: 15px; }
+            .control-bar { flex-direction: column; align-items: stretch; }
+        }
+        .key-hint {
+            font-size: 0.7rem;
+            color: #ff4700;
+            margin-top: 5px;
+            background: #0a0a0a;
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            border: 1px solid #ff0033;
+        }
+        /* Стилизация ползунков */
+        input[type="range"] {
+            -webkit-appearance: none;
+            background: #2a0000;
+            border-radius: 5px;
+        }
+        input[type="range"]:focus {
+            outline: none;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #ff0033;
+            cursor: pointer;
+            box-shadow: 0 0 6px #ff0033;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="synth-container">
+    <h1>⛧ DOOM GRUNT DRUMS ⛧ <span class="sub">MICK GORDON + ARTEM</span></h1>
+    
+    <div class="control-bar">
+        <div class="tempo-area">
+            <label>🔧 BPM</label>
+            <input type="range" id="bpmSlider" min="60" max="180" value="110" step="1">
+            <span id="bpmValue">110</span>
+        </div>
+        <div class="volume-area">
+            <label>🔊 MASTER VOLUME</label>
+            <input type="range" id="masterVolumeSlider" min="0" max="1" step="0.01" value="0.85">
+            <span id="masterVolumeValue">0.85</span>
+        </div>
+        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+            <button id="playStopBtn" class="play-stop">▶ PLAY</button>
+            <button id="randomPatternBtn" class="enable-audio">⚡ RANDOM ALL</button>
+            <button id="clearPatternBtn">⛔ CLEAR ALL</button>
+            <button id="enableAudioBtn" class="enable-audio">🎧 ACTIVATE AUDIO</button>
+        </div>
+    </div>
+
+    
+    <div class="pads-section">
+        <div class="pads-title"> CORE DRUM SYNTH (параметрический)</div>
+        <div class="pads-row">
+            <div class="drum-pad" data-instrument="kick"> KICK</div>
+            <div class="drum-pad" data-instrument="snare"> SNARE</div>
+            <div class="drum-pad" data-instrument="hat"> HAT</div>
+            <div class="drum-pad" data-instrument="metal"> METAL PERC</div>
+        </div>
+    </div>
+
+   
+    <div class="sequencer-section">
+        <div class="seq-title">◢ SEQUENCER v1 (Kick / Snare / Hat / Metal)</div>
+        <div class="track-row">
+            <div class="track-label">KICK</div>
+            <div class="steps" id="steps-kick"></div>
+        </div>
+        <div class="track-row">
+            <div class="track-label">SNARE</div>
+            <div class="steps" id="steps-snare"></div>
+        </div>
+        <div class="track-row">
+            <div class="track-label">HAT</div>
+            <div class="steps" id="steps-hat"></div>
+        </div>
+        <div class="track-row">
+            <div class="track-label">METAL</div>
+            <div class="steps" id="steps-metal"></div>
+        </div>
+    </div>
+
+    
+    <div class="pads-section">
+        <div class="pads-title">💀 DOOM PACK </div>
+        <div class="pads-row">
+            <div class="drum-pad" data-instrument2="kick2"> KICK <span class="badge2">2</span></div>
+            <div class="drum-pad" data-instrument2="snare2"> SNARE <span class="badge2">2</span></div>
+            <div class="drum-pad" data-instrument2="hat2"> HAT <span class="badge2">2</span></div>
+            <div class="drum-pad" data-instrument2="tom"> TOM <span class="badge2">2</span></div>
+            <div class="drum-pad" data-instrument2="crash"> CRASH <span class="badge2">2</span></div>
+        </div>
+    </div>
+
+    
+    <div class="sequencer-section">
+        <div class="seq-title">◢ SEQUENCER v2 (Kick2 / Snare2 / Hat2 / Tom / Crash)</div>
+        <div class="track-row">
+            <div class="track-label">KICK</div>
+            <div class="steps" id="steps-kick2"></div>
+        </div>
+        <div class="track-row">
+            <div class="track-label">SNARE</div>
+            <div class="steps" id="steps-snare2"></div>
+        </div>
+        <div class="track-row">
+            <div class="track-label">HAT</div>
+            <div class="steps" id="steps-hat2"></div>
+        </div>
+        <div class="track-row">
+            <div class="track-label">TOM</div>
+            <div class="steps" id="steps-tom"></div>
+        </div>
+        <div class="track-row">
+            <div class="track-label">CRASH</div>
+            <div class="steps" id="steps-crash"></div>
+        </div>
+    </div>
+
+    
+    <div class="param-panels">
+        <div class="param-card">
+            <h3> KICK DRIVE</h3>
+            <div class="slider-group"><label>DISTORTION (GRIND)</label><input type="range" id="kickDist" min="0" max="1" step="0.01" value="0.65"><span class="param-value" id="kickDistVal">0.65</span></div>
+            <div class="slider-group"><label>FILTER (Hz) LOWPASS</label><input type="range" id="kickFilt" min="200" max="6000" step="10" value="1200"><span class="param-value" id="kickFiltVal">1200 Hz</span></div>
+            <div class="slider-group"><label>DECAY (s)</label><input type="range" id="kickDecay" min="0.2" max="1.2" step="0.01" value="0.55"><span class="param-value" id="kickDecayVal">0.55 s</span></div>
+            <div class="slider-group"><label>PITCH (hz start)</label><input type="range" id="kickPitch" min="60" max="200" step="1" value="110"><span class="param-value" id="kickPitchVal">110 Hz</span></div>
+        </div>
+        <div class="param-card">
+            <h3> SNARE GRIME</h3>
+            <div class="slider-group"><label>DISTORTION (CRUSH)</label><input type="range" id="snareDist" min="0" max="1" step="0.01" value="0.7"><span class="param-value" id="snareDistVal">0.70</span></div>
+            <div class="slider-group"><label>FILTER (Hz)</label><input type="range" id="snareFilt" min="300" max="7000" step="10" value="1800"><span class="param-value" id="snareFiltVal">1800 Hz</span></div>
+            <div class="slider-group"><label>DECAY (s)</label><input type="range" id="snareDecay" min="0.2" max="1.0" step="0.01" value="0.5"><span class="param-value" id="snareDecayVal">0.50 s</span></div>
+            <div class="slider-group"><label>TONAL PITCH</label><input type="range" id="snarePitch" min="100" max="350" step="5" value="180"><span class="param-value" id="snarePitchVal">180 Hz</span></div>
+        </div>
+        <div class="param-card">
+            <h3> HAT CHAIN</h3>
+            <div class="slider-group"><label>DISTORTION (METAL)</label><input type="range" id="hatDist" min="0" max="1" step="0.01" value="0.5"><span class="param-value" id="hatDistVal">0.50</span></div>
+            <div class="slider-group"><label>HIGH-PASS FILTER</label><input type="range" id="hatFilt" min="1500" max="10000" step="50" value="5000"><span class="param-value" id="hatFiltVal">5000 Hz</span></div>
+            <div class="slider-group"><label>DECAY (s)</label><input type="range" id="hatDecay" min="0.1" max="0.6" step="0.01" value="0.25"><span class="param-value" id="hatDecayVal">0.25 s</span></div>
+        </div>
+        <div class="param-card">
+            <h3> INDUSTRIAL METAL</h3>
+            <div class="slider-group"><label>DISTORTION (SHRED)</label><input type="range" id="metalDist" min="0" max="1" step="0.01" value="0.85"><span class="param-value" id="metalDistVal">0.85</span></div>
+            <div class="slider-group"><label>FILTER RESO</label><input type="range" id="metalFilt" min="400" max="6000" step="10" value="2200"><span class="param-value" id="metalFiltVal">2200 Hz</span></div>
+            <div class="slider-group"><label>DECAY (s)</label><input type="range" id="metalDecay" min="0.2" max="1.1" step="0.01" value="0.65"><span class="param-value" id="metalDecayVal">0.65 s</span></div>
+            <div class="slider-group"><label>FM RATIO</label><input type="range" id="metalFm" min="0" max="1.5" step="0.01" value="0.8"><span class="param-value" id="metalFmVal">0.80</span></div>
+        </div>
+    </div>
+    <footer>пока пусто</footer>
+</div>
+
+<script>
+    
+    let audioCtx = null;
+    let masterGain = null;
+    let noiseBuffer = null;
+
+    function initAudio() {
+        if (audioCtx && audioCtx.state !== 'closed') return;
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        masterGain = audioCtx.createGain();
+        masterGain.gain.value = parseFloat(document.getElementById('masterVolumeSlider').value);
+        masterGain.connect(audioCtx.destination);
+        const sampleRate = audioCtx.sampleRate;
+        const bufferSize = sampleRate * 2;
+        noiseBuffer = audioCtx.createBuffer(1, bufferSize, sampleRate);
+        const data = noiseBuffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+    }
+
+    async function ensureAudioRunning() {
+        if (!audioCtx) initAudio();
+        if (audioCtx.state === 'suspended') {
+            await audioCtx.resume();
+        }
+        return audioCtx.state === 'running';
+    }
+
+    async function safePlay(playFunction) {
+        if (!await ensureAudioRunning()) {
+            console.warn('Audio context not running');
+            return;
+        }
+        playFunction();
+    }
+
+    function makeDistortionCurve(amount) {
+        if (amount <= 0.01) return (x) => x;
+        const k = amount * 6;
+        return (x) => Math.tanh(k * x) / Math.tanh(k);
+    }
+    function createDistortionNode(amount) {
+        const ws = audioCtx.createWaveShaper();
+        const curveFunc = makeDistortionCurve(amount);
+        const samples = new Float32Array(4096);
+        for (let i = 0; i < 4096; i++) {
+            const x = (i / 2048) - 1;
+            samples[i] = curveFunc(x);
+        }
+        ws.curve = samples;
+        return ws;
+    }
+
+    function applyChain(sourceNode, envelopeGain, filterFreq, isLowpass, distortionAmount, endGainNode = masterGain) {
+        const filter = audioCtx.createBiquadFilter();
+        filter.type = isLowpass ? 'lowpass' : 'highpass';
+        filter.frequency.value = filterFreq;
+        filter.Q.value = 3.5;
+        const distortion = createDistortionNode(distortionAmount);
+        sourceNode.connect(envelopeGain);
+        envelopeGain.connect(filter);
+        filter.connect(distortion);
+        distortion.connect(endGainNode);
+        return { filter, distortion };
+    }
+
+    function _playKick() {
+        const now = audioCtx.currentTime;
+        const gainEnv = audioCtx.createGain();
+        const decay = parseFloat(document.getElementById('kickDecay').value);
+        gainEnv.gain.setValueAtTime(0.85, now);
+        gainEnv.gain.exponentialRampToValueAtTime(0.0001, now + decay);
+        const osc = audioCtx.createOscillator();
+        osc.type = 'sine';
+        const startPitch = parseFloat(document.getElementById('kickPitch').value);
+        osc.frequency.setValueAtTime(startPitch, now);
+        osc.frequency.exponentialRampToValueAtTime(38, now + 0.18);
+        const filterFreq = parseFloat(document.getElementById('kickFilt').value);
+        const dist = parseFloat(document.getElementById('kickDist').value);
+        applyChain(osc, gainEnv, filterFreq, true, dist, masterGain);
+        const noiseSource = audioCtx.createBufferSource();
+        noiseSource.buffer = noiseBuffer;
+        const noiseGain = audioCtx.createGain();
+        noiseGain.gain.setValueAtTime(0.4, now);
+        noiseGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.12);
+        noiseSource.connect(noiseGain);
+        const noiseFilter = audioCtx.createBiquadFilter();
+        noiseFilter.type = 'highpass';
+        noiseFilter.frequency.value = 400;
+        noiseGain.connect(noiseFilter);
+        const noiseDist = createDistortionNode(dist * 0.7);
+        noiseFilter.connect(noiseDist);
+        noiseDist.connect(masterGain);
+        noiseSource.start();
+        noiseSource.stop(now + 0.2);
+        osc.start();
+        osc.stop(now + decay + 0.1);
+    }
+
+    function _playSnare() {
+        const now = audioCtx.currentTime;
+        const decay = parseFloat(document.getElementById('snareDecay').value);
+        const filterFreq = parseFloat(document.getElementById('snareFilt').value);
+        const dist = parseFloat(document.getElementById('snareDist').value);
+        const pitch = parseFloat(document.getElementById('snarePitch').value);
+        const noiseSrc = audioCtx.createBufferSource();
+        noiseSrc.buffer = noiseBuffer;
+        const noiseEnv = audioCtx.createGain();
+        noiseEnv.gain.setValueAtTime(0.7, now);
+        noiseEnv.gain.exponentialRampToValueAtTime(0.001, now + decay);
+        applyChain(noiseSrc, noiseEnv, filterFreq, true, dist, masterGain);
+        noiseSrc.start();
+        noiseSrc.stop(now + decay + 0.1);
+        const osc = audioCtx.createOscillator();
+        osc.type = 'triangle';
+        osc.frequency.value = pitch;
+        const oscGain = audioCtx.createGain();
+        oscGain.gain.setValueAtTime(0.55, now);
+        oscGain.gain.exponentialRampToValueAtTime(0.001, now + decay * 0.8);
+        const oscFilter = audioCtx.createBiquadFilter();
+        oscFilter.type = 'lowpass';
+        oscFilter.frequency.value = filterFreq * 1.3;
+        const oscDist = createDistortionNode(dist * 0.9);
+        osc.connect(oscGain);
+        oscGain.connect(oscFilter);
+        oscFilter.connect(oscDist);
+        oscDist.connect(masterGain);
+        osc.start();
+        osc.stop(now + decay);
+    }
+
+    function _playHat() {
+        const now = audioCtx.currentTime;
+        const decay = parseFloat(document.getElementById('hatDecay').value);
+        const filterFreq = parseFloat(document.getElementById('hatFilt').value);
+        const dist = parseFloat(document.getElementById('hatDist').value);
+        const noiseSrc = audioCtx.createBufferSource();
+        noiseSrc.buffer = noiseBuffer;
+        const gainEnv = audioCtx.createGain();
+        gainEnv.gain.setValueAtTime(0.65, now);
+        gainEnv.gain.exponentialRampToValueAtTime(0.0001, now + decay);
+        const hpFilter = audioCtx.createBiquadFilter();
+        hpFilter.type = 'highpass';
+        hpFilter.frequency.value = filterFreq;
+        hpFilter.Q.value = 5;
+        const distortion = createDistortionNode(dist);
+        noiseSrc.connect(gainEnv);
+        gainEnv.connect(hpFilter);
+        hpFilter.connect(distortion);
+        distortion.connect(masterGain);
+        noiseSrc.start();
+        noiseSrc.stop(now + decay + 0.08);
+    }
+
+    function _playMetal() {
+        const now = audioCtx.currentTime;
+        const decay = parseFloat(document.getElementById('metalDecay').value);
+        const filterFreq = parseFloat(document.getElementById('metalFilt').value);
+        const dist = parseFloat(document.getElementById('metalDist').value);
+        const fmAmount = parseFloat(document.getElementById('metalFm').value);
+        const carrier = audioCtx.createOscillator();
+        carrier.type = 'sawtooth';
+        const modulator = audioCtx.createOscillator();
+        modulator.type = 'sine';
+        const modGain = audioCtx.createGain();
+        modGain.gain.value = fmAmount * 150;
+        modulator.connect(modGain);
+        modGain.connect(carrier.frequency);
+        carrier.frequency.value = 140;
+        modulator.frequency.value = 105;
+        const gainEnv = audioCtx.createGain();
+        gainEnv.gain.setValueAtTime(0.8, now);
+        gainEnv.gain.exponentialRampToValueAtTime(0.0001, now + decay);
+        const filter = audioCtx.createBiquadFilter();
+        filter.type = 'bandpass';
+        filter.frequency.value = filterFreq;
+        filter.Q.value = 4.2;
+        const distortion = createDistortionNode(dist);
+        carrier.connect(gainEnv);
+        gainEnv.connect(filter);
+        filter.connect(distortion);
+        distortion.connect(masterGain);
+        carrier.start();
+        modulator.start();
+        carrier.stop(now + decay);
+        modulator.stop(now + decay);
+        const noiseSrc = audioCtx.createBufferSource();
+        noiseSrc.buffer = noiseBuffer;
+        const nGain = audioCtx.createGain();
+        nGain.gain.setValueAtTime(0.3, now);
+        nGain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+        const nFilter = audioCtx.createBiquadFilter();
+        nFilter.type = 'highpass';
+        nFilter.frequency.value = 1200;
+        noiseSrc.connect(nGain);
+        nGain.connect(nFilter);
+        const nDist = createDistortionNode(dist*1.1);
+        nFilter.connect(nDist);
+        nDist.connect(masterGain);
+        noiseSrc.start();
+        noiseSrc.stop(now + 0.25);
+    }
+
+    function _playKick2() {
+        const now = audioCtx.currentTime;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        const filter = audioCtx.createBiquadFilter();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(150, now);
+        osc.frequency.exponentialRampToValueAtTime(30, now + 0.4);
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(800, now);
+        gain.gain.setValueAtTime(1.2, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+        const distortion = createDistortionNode(0.9);
+        osc.connect(distortion).connect(filter).connect(gain).connect(masterGain);
+        osc.start();
+        osc.stop(now + 0.6);
+    }
+
+    function _playSnare2() {
+        const now = audioCtx.currentTime;
+        const noise = audioCtx.createBufferSource();
+        const noiseGain = audioCtx.createGain();
+        const noiseFilter = audioCtx.createBiquadFilter();
+        const osc = audioCtx.createOscillator();
+        const oscGain = audioCtx.createGain();
+        const buffer = audioCtx.createBuffer(1, audioCtx.sampleRate * 0.4, audioCtx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < buffer.length; i++) data[i] = Math.random() * 2 - 1;
+        noise.buffer = buffer;
+        noiseFilter.type = 'bandpass';
+        noiseFilter.frequency.setValueAtTime(1200, now);
+        noiseFilter.Q.value = 4;
+        noiseGain.gain.setValueAtTime(1.0, now);
+        noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(180, now);
+        oscGain.gain.setValueAtTime(0.7, now);
+        oscGain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+        const distortion = createDistortionNode(0.85);
+        noise.connect(noiseFilter).connect(noiseGain).connect(distortion);
+        osc.connect(oscGain).connect(distortion);
+        distortion.connect(masterGain);
+        noise.start();
+        osc.start();
+        osc.stop(now + 0.3);
+    }
+
+    function _playHat2(isClosed = true) {
+        const now = audioCtx.currentTime;
+        const noise = audioCtx.createBufferSource();
+        const gain = audioCtx.createGain();
+        const filter = audioCtx.createBiquadFilter();
+        const buffer = audioCtx.createBuffer(1, audioCtx.sampleRate * 0.15, audioCtx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < buffer.length; i++) data[i] = Math.random() * 2 - 1;
+        noise.buffer = buffer;
+        filter.type = 'highpass';
+        filter.frequency.setValueAtTime(7000, now);
+        gain.gain.setValueAtTime(isClosed ? 0.7 : 1.0, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + (isClosed ? 0.08 : 0.25));
+        const distortion = createDistortionNode(0.6);
+        noise.connect(filter).connect(gain).connect(distortion).connect(masterGain);
+        noise.start();
+    }
+
+    function _playTom2() {
+        const now = audioCtx.currentTime;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        const filter = audioCtx.createBiquadFilter();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(120, now);
+        osc.frequency.exponentialRampToValueAtTime(60, now + 0.6);
+        filter.type = 'lowpass';
+        filter.frequency.value = 600;
+        gain.gain.setValueAtTime(1.0, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.7);
+        const distortion = createDistortionNode(0.7);
+        osc.connect(filter).connect(gain).connect(distortion).connect(masterGain);
+        osc.start();
+        osc.stop(now + 0.8);
+    }
+
+    function _playCrash2() {
+        const now = audioCtx.currentTime;
+        const noise = audioCtx.createBufferSource();
+        const gain = audioCtx.createGain();
+        const filter = audioCtx.createBiquadFilter();
+        const buffer = audioCtx.createBuffer(1, audioCtx.sampleRate * 2.5, audioCtx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < buffer.length; i++) data[i] = Math.random() * 2 - 1;
+        noise.buffer = buffer;
+        filter.type = 'bandpass';
+        filter.frequency.setValueAtTime(4500, now);
+        filter.Q.value = 2;
+        gain.gain.setValueAtTime(1.2, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 2.2);
+        const distortion = createDistortionNode(0.9);
+        noise.connect(filter).connect(gain).connect(distortion).connect(masterGain);
+        noise.start();
+    }
+
+    function playKick() { safePlay(_playKick); }
+    function playSnare() { safePlay(_playSnare); }
+    function playHat() { safePlay(_playHat); }
+    function playMetal() { safePlay(_playMetal); }
+    function playKick2() { safePlay(_playKick2); }
+    function playSnare2() { safePlay(_playSnare2); }
+    function playHat2() { safePlay(() => _playHat2(true)); }
+    function playTom2() { safePlay(_playTom2); }
+    function playCrash2() { safePlay(_playCrash2); }
+
+    let pattern1 = { kick: new Array(16).fill(false), snare: new Array(16).fill(false), hat: new Array(16).fill(false), metal: new Array(16).fill(false) };
+    let pattern2 = { kick2: new Array(16).fill(false), snare2: new Array(16).fill(false), hat2: new Array(16).fill(false), tom: new Array(16).fill(false), crash: new Array(16).fill(false) };
+    let currentStep = 0;
+    let isPlaying = false;
+    let intervalId = null;
+    let bpm = 110;
+
+    function getStepIntervalMs() { return (60 / bpm) / 4 * 1000; }
+
+    function playStep(step) {
+        if (pattern1.kick[step]) playKick();
+        if (pattern1.snare[step]) playSnare();
+        if (pattern1.hat[step]) playHat();
+        if (pattern1.metal[step]) playMetal();
+        if (pattern2.kick2[step]) playKick2();
+        if (pattern2.snare2[step]) playSnare2();
+        if (pattern2.hat2[step]) playHat2();
+        if (pattern2.tom[step]) playTom2();
+        if (pattern2.crash[step]) playCrash2();
+    }
+
+    function sequencerTick() { if (!isPlaying) return; playStep(currentStep); updateAllHighlights(); currentStep = (currentStep + 1) % 16; }
+    
+    async function startSequencer() {
+        if (isPlaying) return;
+        if (!await ensureAudioRunning()) {
+            alert('Please click "ACTIVATE AUDIO" first or click any drum pad');
+            return;
+        }
+        isPlaying = true;
+        if (intervalId) clearInterval(intervalId);
+        intervalId = setInterval(sequencerTick, getStepIntervalMs());
+        document.getElementById('playStopBtn').innerHTML = '⏹ STOP';
+    }
+    
+    function stopSequencer() { if (intervalId) clearInterval(intervalId); isPlaying = false; currentStep = 0; updateAllHighlights(); document.getElementById('playStopBtn').innerHTML = '▶ PLAY'; }
+    
+    function updateBPM() { bpm = parseInt(document.getElementById('bpmSlider').value); document.getElementById('bpmValue').innerText = bpm; if (isPlaying) { if (intervalId) clearInterval(intervalId); intervalId = setInterval(sequencerTick, getStepIntervalMs()); } }
+    function updateMasterVolume() { const val = parseFloat(document.getElementById('masterVolumeSlider').value); document.getElementById('masterVolumeValue').innerText = val.toFixed(2); if (masterGain) masterGain.gain.value = val; }
+
+    function buildGrids() {
+        const instruments1 = ['kick', 'snare', 'hat', 'metal'];
+        instruments1.forEach(inst => { const container = document.getElementById(`steps-${inst}`); container.innerHTML = ''; for (let i=0; i<16; i++) { const stepDiv = document.createElement('div'); stepDiv.classList.add('step'); if (pattern1[inst][i]) stepDiv.classList.add('active'); stepDiv.dataset.step = i; stepDiv.dataset.inst = inst; stepDiv.addEventListener('click', (e) => { const instName = stepDiv.dataset.inst; const stepIdx = parseInt(stepDiv.dataset.step); pattern1[instName][stepIdx] = !pattern1[instName][stepIdx]; updateGridUI(); }); container.appendChild(stepDiv); } });
+        const instruments2 = ['kick2', 'snare2', 'hat2', 'tom', 'crash'];
+        instruments2.forEach(inst => { const container = document.getElementById(`steps-${inst}`); container.innerHTML = ''; for (let i=0; i<16; i++) { const stepDiv = document.createElement('div'); stepDiv.classList.add('step'); if (pattern2[inst][i]) stepDiv.classList.add('active'); stepDiv.dataset.step = i; stepDiv.dataset.inst = inst; stepDiv.addEventListener('click', (e) => { const instName = stepDiv.dataset.inst; const stepIdx = parseInt(stepDiv.dataset.step); pattern2[instName][stepIdx] = !pattern2[instName][stepIdx]; updateGridUI(); }); container.appendChild(stepDiv); } });
+    }
+
+    function updateGridUI() {
+        for (let inst of ['kick', 'snare', 'hat', 'metal']) { const stepsDivs = document.querySelectorAll(`#steps-${inst} .step`); stepsDivs.forEach((div, idx) => { if (pattern1[inst][idx]) div.classList.add('active'); else div.classList.remove('active'); }); }
+        for (let inst of ['kick2', 'snare2', 'hat2', 'tom', 'crash']) { const stepsDivs = document.querySelectorAll(`#steps-${inst} .step`); stepsDivs.forEach((div, idx) => { if (pattern2[inst][idx]) div.classList.add('active'); else div.classList.remove('active'); }); }
+        updateAllHighlights();
+    }
+
+    function updateAllHighlights() {
+        for (let inst of ['kick', 'snare', 'hat', 'metal']) { const stepsDivs = document.querySelectorAll(`#steps-${inst} .step`); stepsDivs.forEach((div, idx) => { div.classList.remove('current'); if (idx === currentStep && isPlaying) div.classList.add('current'); }); }
+        for (let inst of ['kick2', 'snare2', 'hat2', 'tom', 'crash']) { const stepsDivs = document.querySelectorAll(`#steps-${inst} .step`); stepsDivs.forEach((div, idx) => { div.classList.remove('current'); if (idx === currentStep && isPlaying) div.classList.add('current'); }); }
+    }
+
+    function randomPattern() {
+        for (let inst of ['kick', 'snare', 'hat', 'metal']) for (let i=0;i<16;i++) pattern1[inst][i] = Math.random() > 0.7;
+        pattern1.kick[0]=true; pattern1.kick[4]=true; pattern1.kick[8]=true; pattern1.kick[12]=true;
+        pattern1.snare[4]=true; pattern1.snare[12]=true;
+        pattern1.hat = pattern1.hat.map((_,idx)=> idx%2===0);
+        pattern1.metal[3]=true; pattern1.metal[7]=true; pattern1.metal[11]=true; pattern1.metal[15]=true;
+        for (let inst of ['kick2', 'snare2', 'hat2', 'tom', 'crash']) for (let i=0;i<16;i++) pattern2[inst][i] = Math.random() > 0.75;
+        pattern2.kick2[0]=true; pattern2.kick2[8]=true;
+        pattern2.snare2[4]=true; pattern2.snare2[12]=true;
+        pattern2.hat2 = pattern2.hat2.map((_,idx)=> idx%2===0);
+        pattern2.tom[7]=true; pattern2.tom[15]=true;
+        pattern2.crash[0]=true; pattern2.crash[8]=true;
+        updateGridUI();
+    }
+    function clearPattern() {
+        for (let inst of ['kick', 'snare', 'hat', 'metal']) pattern1[inst].fill(false);
+        for (let inst of ['kick2', 'snare2', 'hat2', 'tom', 'crash']) pattern2[inst].fill(false);
+        updateGridUI();
+    }
+    function initDefaultPattern() {
+        pattern1.kick = [true,false,false,false, true,false,false,false, true,false,false,false, true,false,false,false];
+        pattern1.snare = [false,false,false,false, true,false,false,false, false,false,false,false, true,false,false,false];
+        pattern1.hat = [true,false,true,false, true,false,true,false, true,false,true,false, true,false,true,false];
+        pattern1.metal = [false,false,false,true, false,false,true,false, false,true,false,false, true,false,false,true];
+        pattern2.kick2 = [true,false,false,false, false,false,false,false, true,false,false,false, false,false,false,false];
+        pattern2.snare2 = [false,false,false,false, true,false,false,false, false,false,false,false, true,false,false,false];
+        pattern2.hat2 = [true,false,true,false, true,false,true,false, true,false,true,false, true,false,true,false];
+        pattern2.tom = [false,false,false,false, false,false,false,true, false,false,false,false, false,false,false,true];
+        pattern2.crash = [true,false,false,false, false,false,false,false, true,false,false,false, false,false,false,false];
+        updateGridUI();
+    }
+
+    function bindControls() {
+        document.getElementById('bpmSlider').addEventListener('input', () => { document.getElementById('bpmValue').innerText = document.getElementById('bpmSlider').value; updateBPM(); });
+        document.getElementById('masterVolumeSlider').addEventListener('input', () => { const val = document.getElementById('masterVolumeSlider').value; document.getElementById('masterVolumeValue').innerText = parseFloat(val).toFixed(2); updateMasterVolume(); });
+        document.getElementById('playStopBtn').addEventListener('click', () => { if (isPlaying) stopSequencer(); else startSequencer(); });
+        document.getElementById('randomPatternBtn').addEventListener('click', () => randomPattern());
+        document.getElementById('clearPatternBtn').addEventListener('click', () => clearPattern());
+        document.getElementById('enableAudioBtn').addEventListener('click', async () => { if (!audioCtx) initAudio(); await ensureAudioRunning(); });
+        document.querySelectorAll('.drum-pad[data-instrument]').forEach(pad => { pad.addEventListener('click', () => { const inst = pad.dataset.instrument; if(inst === 'kick') playKick(); else if(inst === 'snare') playSnare(); else if(inst === 'hat') playHat(); else if(inst === 'metal') playMetal(); }); });
+        document.querySelectorAll('.drum-pad[data-instrument2]').forEach(pad => { pad.addEventListener('click', () => { const inst = pad.dataset.instrument2; if(inst === 'kick2') playKick2(); else if(inst === 'snare2') playSnare2(); else if(inst === 'hat2') playHat2(); else if(inst === 'tom') playTom2(); else if(inst === 'crash') playCrash2(); }); });
+        document.addEventListener('keydown', e => { if (e.key === 'z') { e.preventDefault(); playKick2(); } if (e.key === 'x') { e.preventDefault(); playSnare2(); } if (e.key === 'c') { e.preventDefault(); playHat2(); } if (e.key === 'v') { e.preventDefault(); playTom2(); } if (e.key === 'b') { e.preventDefault(); playCrash2(); } });
+        const paramIds = ['kickDist','kickFilt','kickDecay','kickPitch','snareDist','snareFilt','snareDecay','snarePitch','hatDist','hatFilt','hatDecay','metalDist','metalFilt','metalDecay','metalFm'];
+        paramIds.forEach(id => { const el = document.getElementById(id); if(!el) return; const spanId = id+'Val'; const span = document.getElementById(spanId); if(span) { const update = () => { let val = el.value; if(id.includes('Filt')) span.innerText = val + ' Hz'; else if(id.includes('Decay')) span.innerText = val + ' s'; else if(id.includes('Pitch')) span.innerText = val + ' Hz'; else span.innerText = val; }; el.addEventListener('input', update); update(); } });
+    }
+
+    function startup() { initAudio(); bindControls(); buildGrids(); initDefaultPattern(); }
+    startup();
+</script>
+</body>
+</html>

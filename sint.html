@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DOOM GRUNT SYNTH </title>
+    <style>
+        body {
+            background: #0f0f0f;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: 'Courier New', monospace;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+            color: #ff6a33;
+        }
+        
+        .synth-container {
+            background: #1a1a1a;
+            border: 3px solid #ff4700;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 0 30px rgba(255, 71, 0, 0.3), inset 0 0 20px rgba(0,0,0,0.8);
+            max-width: 1400px;
+            width: 100%;
+        }
+        
+        .header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #ff4700;
+            padding-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .logo {
+            font-size: 48px;
+            font-weight: bold;
+            color: #ff4700;
+            text-shadow: 0 0 15px #ff4700;
+            letter-spacing: 4px;
+            font-family: 'Impact', fantasy;
+            margin-right: 20px;
+            animation: glitch 2s infinite;
+        }
+        
+        @keyframes glitch {
+            0% { transform: translate(0); }
+            20% { transform: translate(-2px, 2px); }
+            40% { transform: translate(-2px, -2px); }
+            60% { transform: translate(2px, 2px); }
+            80% { transform: translate(2px, -2px); }
+            100% { transform: translate(0); }
+        }
+        
+        .subtitle {
+            color: #ff6a33;
+            font-size: 16px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        
+        .knobs-panel {
+            background: #1f1f1f;
+            border: 1px solid #ff4700;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+            box-shadow: inset 0 0 30px #000000;
+        }
+        
+        .knob-section {
+            text-align: center;
+        }
+        
+        .knob-section h3 {
+            color: #ff4700;
+            font-size: 14px;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            border-bottom: 1px solid #444;
+            padding-bottom: 5px;
+        }
+        
+        .knob {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 15px;
+            background: #333;
+            border-radius: 50%;
+            border: 3px solid #ff4700;
+            position: relative;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.7);
+        }
+        
+        .knob::after {
+            content: '';
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 6px;
+            height: 30px;
+            background: #ff4700;
+            border-radius: 3px;
+        }
+        
+        .knob-value {
+            color: #ff6a33;
+            font-size: 18px;
+            font-weight: bold;
+            text-shadow: 0 0 10px #ff4700;
+            font-family: 'Digital', 'Courier New', monospace;
+            background: #111;
+            padding: 5px 10px;
+            border-radius: 8px;
+            display: inline-block;
+            border: 1px solid #ff4700;
+        }
+        
+        .mode-selector {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        
+        .mode-button {
+            background: #1a1a1a;
+            border: 2px solid #ff4700;
+            color: #ff4700;
+            padding: 10px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            text-transform: uppercase;
+            cursor: pointer;
+            border-radius: 10px;
+            transition: all 0.2s;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 1px;
+        }
+        
+        .mode-button.active {
+            background: #ff4700;
+            color: #0f0f0f;
+            box-shadow: 0 0 30px #ff4700;
+        }
+        
+        .keyboard-container {
+            background: #111;
+            border: 2px solid #ff4700;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 30px 0;
+            overflow-x: auto;
+        }
+        
+        .octave-indicator {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            color: #ff4700;
+            font-size: 18px;
+            font-weight: bold;
+            text-transform: uppercase;
+            padding: 0 10px;
+        }
+        
+        .octave-label {
+            background: #1f1f1f;
+            padding: 5px 15px;
+            border: 1px solid #ff4700;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .octave-label:hover {
+            background: #ff4700;
+            color: #000;
+        }
+        
+        .octave-label.active {
+            background: #ff4700;
+            color: #000;
+        }
+        
+        .keyboard {
+            display: flex;
+            justify-content: center;
+            min-width: max-content;
+            gap: 2px;
+            position: relative;
+        }
+        
+        .key {
+            width: 60px;
+            height: 200px;
+            background: #f0f0f0;
+            border: 2px solid #333;
+            border-radius: 0 0 10px 10px;
+            cursor: pointer;
+            transition: all 0.05s;
+            position: relative;
+            box-shadow: 0 5px 0 #999;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            align-items: center;
+            padding-bottom: 10px;
+            color: #333;
+        }
+        
+        .key.black {
+            width: 40px;
+            height: 140px;
+            background: #333;
+            margin-left: -22px;
+            margin-right: -22px;
+            z-index: 2;
+            box-shadow: 0 5px 0 #111;
+            border: 2px solid #222;
+            color: #fff;
+        }
+        
+        .key.active {
+            background: #ff4700 !important;
+            transform: translateY(5px);
+            box-shadow: 0 0 20px #ff4700;
+            color: #000;
+        }
+        
+        .note-label {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .keyboard-hint {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+            background: rgba(0,0,0,0.2);
+            padding: 3px 8px;
+            border-radius: 10px;
+        }
+        
+        .key.black .keyboard-hint {
+            color: #ccc;
+            background: rgba(255,255,255,0.1);
+        }
+        
+        .controls {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        
+        .effect-button {
+            background: #1a1a1a;
+            border: 2px solid #ff4700;
+            color: #ff4700;
+            padding: 15px 30px;
+            font-size: 18px;
+            font-weight: bold;
+            text-transform: uppercase;
+            cursor: pointer;
+            border-radius: 10px;
+            transition: all 0.2s;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 2px;
+        }
+        
+        .effect-button:hover {
+            background: #ff4700;
+            color: #000;
+            box-shadow: 0 0 30px #ff4700;
+        }
+        
+        .effect-button.active {
+            background: #ff4700;
+            color: #000;
+            animation: pulse 0.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+        
+        .status-panel {
+            background: #111;
+            border: 2px solid #ff4700;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #ff6a33;
+            font-size: 16px;
+            text-transform: uppercase;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .footer {
+            color: #666;
+            text-align: center;
+            margin-top: 20px;
+            font-size: 12px;
+        }
+        
+        .keyboard-info {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 20px;
+            color: #888;
+            font-size: 14px;
+            flex-wrap: wrap;
+        }
+        
+        .info-item {
+            background: #1f1f1f;
+            padding: 5px 15px;
+            border-radius: 15px;
+            border: 1px solid #ff4700;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            accent-color: #ff4700;
+            background: #333;
+            height: 5px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="synth-container">
+        <div class="header">
+            <div class="logo">DOOM GRUNT</div>
+            <div class="subtitle">Industrial Doom Synth • Violin & Piano Layers • 4 Octaves</div>
+        </div>
+        
+        <div class="knobs-panel">
+            <div class="knob-section">
+                <h3>OSC MIX</h3>
+                <input type="range" id="oscMix" min="0" max="1" step="0.01" value="0.5" style="width: 100%; margin-bottom: 10px;">
+                <div class="knob-value" id="oscMixValue">50%</div>
+            </div>
+            
+            <div class="knob-section">
+                <h3>VIOLIN</h3>
+                <input type="range" id="violinLevel" min="0" max="1" step="0.01" value="0" style="width: 100%; margin-bottom: 10px;">
+                <div class="knob-value" id="violinValue">0%</div>
+            </div>
+            
+            <div class="knob-section">
+                <h3>PIANO</h3>
+                <input type="range" id="pianoLevel" min="0" max="1" step="0.01" value="0" style="width: 100%; margin-bottom: 10px;">
+                <div class="knob-value" id="pianoValue">0%</div>
+            </div>
+            
+            <div class="knob-section">
+                <h3>GRUNT/SUB</h3>
+                <input type="range" id="subLevel" min="0" max="1" step="0.01" value="0.5" style="width: 100%; margin-bottom: 10px;">
+                <div class="knob-value" id="subValue">50%</div>
+            </div>
+            
+            <div class="knob-section">
+                <h3>DISTORTION</h3>
+                <input type="range" id="distortion" min="0" max="1" step="0.01" value="0.5" style="width: 100%; margin-bottom: 10px;">
+                <div class="knob-value" id="distValue">50%</div>
+            </div>
+            
+            <div class="knob-section">
+                <h3>NOISE</h3>
+                <input type="range" id="noiseLevel" min="0" max="1" step="0.01" value="0" style="width: 100%; margin-bottom: 10px;">
+                <div class="knob-value" id="noiseValue">0%</div>
+            </div>
+        </div>
+        
+        <div class="mode-selector">
+            <button class="mode-button active" id="modeNormal">NORMAL MODE</button>
+            <button class="mode-button" id="modeDistortAcoustic">DISTORT ACOUSTIC</button>
+        </div>
+        
+        <div class="keyboard-container">
+            <div class="octave-indicator" id="octaveIndicator">
+                <span class="octave-label" data-octave="1">OCTAVE 1</span>
+                <span class="octave-label" data-octave="2">OCTAVE 2</span>
+                <span class="octave-label active" data-octave="3">OCTAVE 3</span>
+                <span class="octave-label" data-octave="4">OCTAVE 4</span>
+            </div>
+            <div class="keyboard" id="keyboard"></div>
+        </div>
+        
+        <div class="controls">
+            <button class="effect-button" id="glitch">GLITCH</button>
+            <button class="effect-button" id="ripTear">RIP & TEAR</button>
+            <button class="effect-button" id="djent">DJENT</button>
+        </div>
+        
+        <div class="status-panel" id="status">
+            <span>ARMED</span>
+            <span>OCTAVE: 3</span>
+            <span>VIOLIN: 0%</span>
+            <span>PIANO: 0%</span>
+            <span>EFFECTS: NONE</span>
+        </div>
+        
+        <div class="keyboard-info">
+            <span class="info-item">🔹 Q W E R T Y U I O P [ ]</span>
+            <span class="info-item">🔹 A S D F G H J K L ; '</span>
+            <span class="info-item">🔹 Z X C V B N M , . /</span>
+            <span class="info-item">🔹 1 2 3 4 = OCTAVE</span>
+        </div>
+        
+        <div class="footer">
+            ⚡ КИШКИ • СМЕРТЬ • МИК ГОРДОН ⚡
+        </div>
+    </div>
+
+    <script>
+        // Audio Context
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const masterGain = audioCtx.createGain();
+        masterGain.gain.value = 0.3;
+        masterGain.connect(audioCtx.destination);
+
+        const distortionNode = audioCtx.createWaveShaper();
+        distortionNode.connect(masterGain);
+
+        // Distortion curve
+        function makeDistortionCurve(amount) {
+            const k = typeof amount === 'number' ? amount : 50;
+            const n_samples = 44100;
+            const curve = new Float32Array(n_samples);
+            const deg = Math.PI / 180;
+            for (let i = 0; i < n_samples; ++i) {
+                const x = i * 2 / n_samples - 1;
+                curve[i] = (3 + k) * x * 20 * deg / (Math.PI + k * Math.abs(x));
+            }
+            return curve;
+        }
+
+        // State
+        let currentOctave = 3;
+        let distortAcoustic = false;
+        const effects = { glitch: false, ripTear: false, djent: false };
+        const activeNotes = new Map();
+
+        // Notes and frequencies
+        const notes = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+        const baseFreq = 65.406; // C2
+
+        function getFreq(noteName) {
+            const match = noteName.match(/([A-G]#?)(\d+)/);
+            if (!match) return 440;
+            const note = match[1];
+            const octave = parseInt(match[2]);
+            const noteIndex = notes.indexOf(note);
+            return baseFreq * Math.pow(2, (octave - 2) + noteIndex / 12);
+        }
+
+        
+        const keyMap = {
+            1: { // Octave 1 (C1-B2)
+                'q': 'C1', 'w': 'C#1', 'e': 'D1', 'r': 'D#1', 't': 'E1', 'y': 'F1', 'u': 'F#1',
+                'i': 'G1', 'o': 'G#1', 'p': 'A1', '[': 'A#1', ']': 'B1',
+                'a': 'C2', 's': 'C#2', 'd': 'D2', 'f': 'D#2', 'g': 'E2', 'h': 'F2', 'j': 'F#2',
+                'k': 'G2', 'l': 'G#2', ';': 'A2', "'": 'A#2',
+                'z': 'B2', 'x': 'C3', 'c': 'C#3', 'v': 'D3', 'b': 'D#3', 'n': 'E3', 'm': 'F3',
+                ',': 'F#3', '.': 'G3', '/': 'G#3'
+            },
+            2: { // Octave 2 (C2-B3)
+                'q': 'C2', 'w': 'C#2', 'e': 'D2', 'r': 'D#2', 't': 'E2', 'y': 'F2', 'u': 'F#2',
+                'i': 'G2', 'o': 'G#2', 'p': 'A2', '[': 'A#2', ']': 'B2',
+                'a': 'C3', 's': 'C#3', 'd': 'D3', 'f': 'D#3', 'g': 'E3', 'h': 'F3', 'j': 'F#3',
+                'k': 'G3', 'l': 'G#3', ';': 'A3', "'": 'A#3',
+                'z': 'B3', 'x': 'C4', 'c': 'C#4', 'v': 'D4', 'b': 'D#4', 'n': 'E4', 'm': 'F4',
+                ',': 'F#4', '.': 'G4', '/': 'G#4'
+            },
+            3: { // Octave 3 (C3-B4)
+                'q': 'C3', 'w': 'C#3', 'e': 'D3', 'r': 'D#3', 't': 'E3', 'y': 'F3', 'u': 'F#3',
+                'i': 'G3', 'o': 'G#3', 'p': 'A3', '[': 'A#3', ']': 'B3',
+                'a': 'C4', 's': 'C#4', 'd': 'D4', 'f': 'D#4', 'g': 'E4', 'h': 'F4', 'j': 'F#4',
+                'k': 'G4', 'l': 'G#4', ';': 'A4', "'": 'A#4',
+                'z': 'B4', 'x': 'C5', 'c': 'C#5', 'v': 'D5', 'b': 'D#5', 'n': 'E5', 'm': 'F5',
+                ',': 'F#5', '.': 'G5', '/': 'G#5'
+            },
+            4: { // Octave 4 (C4-B5)
+                'q': 'C4', 'w': 'C#4', 'e': 'D4', 'r': 'D#4', 't': 'E4', 'y': 'F4', 'u': 'F#4',
+                'i': 'G4', 'o': 'G#4', 'p': 'A4', '[': 'A#4', ']': 'B4',
+                'a': 'C5', 's': 'C#5', 'd': 'D5', 'f': 'D#5', 'g': 'E5', 'h': 'F5', 'j': 'F#5',
+                'k': 'G5', 'l': 'G#5', ';': 'A5', "'": 'A#5',
+                'z': 'B5', 'x': 'C6', 'c': 'C#6', 'v': 'D6', 'b': 'D#6', 'n': 'E6', 'm': 'F6',
+                ',': 'F#6', '.': 'G6', '/': 'G#6'
+            }
+        };
+
+        // создание нот (DOOM GRUNT SYNTH)
+        function createNote(freq, noteName) {
+            const oscMix = parseFloat(document.getElementById('oscMix').value);
+            const violinLevel = parseFloat(document.getElementById('violinLevel').value);
+            const pianoLevel = parseFloat(document.getElementById('pianoLevel').value);
+            const subLevel = parseFloat(document.getElementById('subLevel').value);
+            const distAmount = parseFloat(document.getElementById('distortion').value) * 100;
+            const noiseLevel = parseFloat(document.getElementById('noiseLevel').value);
+
+            distortionNode.curve = makeDistortionCurve(distAmount);
+
+            // узлы перегруза
+            const synthGain = audioCtx.createGain();
+            const violinGain = audioCtx.createGain();
+            const pianoGain = audioCtx.createGain();
+            const subGain = audioCtx.createGain();
+            const noiseGain = audioCtx.createGain();
+
+            // осцилляторы для синта
+            const osc1 = audioCtx.createOscillator();
+            osc1.type = 'sawtooth';
+            osc1.frequency.value = freq;
+
+            const osc2 = audioCtx.createOscillator();
+            osc2.type = 'square';
+            osc2.frequency.value = freq;
+
+            const osc3 = audioCtx.createOscillator();
+            osc3.type = 'sawtooth';
+            osc3.frequency.value = freq * 1.01;
+
+            osc1.connect(synthGain);
+            osc2.connect(synthGain);
+            osc3.connect(synthGain);
+            synthGain.gain.value = oscMix / 3;
+
+            // sub bass
+            const subOsc = audioCtx.createOscillator();
+            subOsc.type = 'sine';
+            subOsc.frequency.value = freq / 2;
+            subOsc.connect(subGain);
+            subGain.gain.value = subLevel;
+
+            // скрипка
+            const violinOsc = audioCtx.createOscillator();
+            violinOsc.type = 'sawtooth';
+            violinOsc.frequency.value = freq;
+
+            const violinFilter = audioCtx.createBiquadFilter();
+            violinFilter.type = 'lowpass';
+            violinFilter.frequency.value = 1000;
+
+            const violinLFO = audioCtx.createOscillator();
+            violinLFO.type = 'sine';
+            violinLFO.frequency.value = 5;
+            const violinLFOGain = audioCtx.createGain();
+            violinLFOGain.gain.value = 10;
+            violinLFO.connect(violinLFOGain);
+            violinLFOGain.connect(violinOsc.frequency);
+
+            violinOsc.connect(violinFilter);
+            violinFilter.connect(violinGain);
+            violinGain.gain.value = violinLevel;
+
+            // пианино
+            const pianoOsc = audioCtx.createOscillator();
+            pianoOsc.type = 'triangle';
+            pianoOsc.frequency.value = freq;
+
+            const pianoFilter = audioCtx.createBiquadFilter();
+            pianoFilter.type = 'bandpass';
+            pianoFilter.frequency.value = freq;
+            pianoFilter.Q.value = 1;
+
+            pianoOsc.connect(pianoFilter);
+            pianoFilter.connect(pianoGain);
+            pianoGain.gain.value = pianoLevel;
+
+            // noise
+            const noiseBuffer = audioCtx.createBuffer(1, audioCtx.sampleRate * 2, audioCtx.sampleRate);
+            const noiseData = noiseBuffer.getChannelData(0);
+            for (let i = 0; i < noiseData.length; i++) {
+                noiseData[i] = Math.random() * 2 - 1;
+            }
+            const noiseSource = audioCtx.createBufferSource();
+            noiseSource.buffer = noiseBuffer;
+            noiseSource.loop = true;
+
+            const noiseFilter = audioCtx.createBiquadFilter();
+            noiseFilter.type = 'bandpass';
+            noiseFilter.frequency.value = 500;
+
+            noiseSource.connect(noiseFilter);
+            noiseFilter.connect(noiseGain);
+            noiseGain.gain.value = noiseLevel;
+
+            // сonnections
+            const acousticMerger = audioCtx.createGain();
+            violinGain.connect(acousticMerger);
+            pianoGain.connect(acousticMerger);
+
+            synthGain.connect(distortionNode);
+            subGain.connect(distortionNode);
+            noiseGain.connect(distortionNode);
+
+            if (distortAcoustic) {
+                acousticMerger.connect(distortionNode);
+            } else {
+                acousticMerger.connect(masterGain);
+            }
+
+            // старты
+            osc1.start();
+            osc2.start();
+            osc3.start();
+            subOsc.start();
+            violinOsc.start();
+            violinLFO.start();
+            pianoOsc.start();
+            noiseSource.start();
+
+            // эфекты
+            let glitchInterval = null;
+            let ripTearInterval = null;
+            let djentLFO = null;
+            let djentGainMod = null;
+
+            if (effects.glitch) {
+                glitchInterval = setInterval(() => {
+                    const randDetune = (Math.random() - 0.5) * 100;
+                    osc1.detune.value = randDetune;
+                    osc2.detune.value = randDetune;
+                    osc3.detune.value = randDetune;
+                    setTimeout(() => {
+                        osc1.detune.value = 0;
+                        osc2.detune.value = 0;
+                        osc3.detune.value = 0;
+                    }, 50);
+                }, 200 + Math.random() * 800);
+            }
+
+            if (effects.ripTear) {
+                const filter = audioCtx.createBiquadFilter();
+                filter.type = Math.random() > 0.5 ? 'lowpass' : 'highpass';
+                filter.frequency.value = 1000;
+                
+                // переподключения через фильтр
+                synthGain.disconnect();
+                synthGain.connect(filter);
+                filter.connect(distortionNode);
+
+                ripTearInterval = setInterval(() => {
+                    filter.frequency.value = 200 + Math.random() * 8000;
+                }, 100 + Math.random() * 400);
+            }
+
+            if (effects.djent) {
+                djentLFO = audioCtx.createOscillator();
+                djentLFO.type = 'square';
+                djentLFO.frequency.value = 4;
+                djentGainMod = audioCtx.createGain();
+                djentGainMod.gain.value = 0.5;
+                djentLFO.connect(djentGainMod);
+                djentGainMod.connect(synthGain.gain);
+                djentLFO.start();
+            }
+
+            return {
+                stop: () => {
+                    const releaseTime = 0.08;
+                    synthGain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + releaseTime);
+                    violinGain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.5);
+                    pianoGain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + releaseTime);
+                    subGain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + releaseTime);
+                    noiseGain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + releaseTime);
+
+                    setTimeout(() => {
+                        osc1.stop();
+                        osc2.stop();
+                        osc3.stop();
+                        subOsc.stop();
+                        violinOsc.stop();
+                        violinLFO.stop();
+                        pianoOsc.stop();
+                        noiseSource.stop();
+
+                        if (glitchInterval) clearInterval(glitchInterval);
+                        if (ripTearInterval) clearInterval(ripTearInterval);
+                        if (djentLFO) djentLFO.stop();
+                    }, 600);
+                }
+            };
+        }
+
+        // play/stop функций
+        function playNote(note) {
+            if (activeNotes.has(note)) return;
+            const freq = getFreq(note);
+            const voice = createNote(freq, note);
+            activeNotes.set(note, voice);
+            
+            // feedback
+            const keyElem = document.querySelector(`[data-note="${note}"]`);
+            if (keyElem) keyElem.classList.add('active');
+            
+            updateStatus();
+        }
+
+        function stopNote(note) {
+            const voice = activeNotes.get(note);
+            if (voice) {
+                voice.stop();
+                activeNotes.delete(note);
+                
+                const keyElem = document.querySelector(`[data-note="${note}"]`);
+                if (keyElem) keyElem.classList.remove('active');
+            }
+        }
+
+        // отображения
+        function updateStatus() {
+            const violinPct = Math.round(document.getElementById('violinLevel').value * 100);
+            const pianoPct = Math.round(document.getElementById('pianoLevel').value * 100);
+            const activeEffects = Object.keys(effects).filter(e => effects[e]).join(', ') || 'NONE';
+            
+            document.getElementById('status').innerHTML = `
+                <span>ARMED</span>
+                <span>OCTAVE: ${currentOctave}</span>
+                <span>VIOLIN: ${violinPct}%</span>
+                <span>PIANO: ${pianoPct}%</span>
+                <span>EFFECTS: ${activeEffects}</span>
+            `;
+            
+            // крутилки
+            document.getElementById('oscMixValue').textContent = Math.round(document.getElementById('oscMix').value * 100) + '%';
+            document.getElementById('violinValue').textContent = Math.round(document.getElementById('violinLevel').value * 100) + '%';
+            document.getElementById('pianoValue').textContent = Math.round(document.getElementById('pianoLevel').value * 100) + '%';
+            document.getElementById('subValue').textContent = Math.round(document.getElementById('subLevel').value * 100) + '%';
+            document.getElementById('distValue').textContent = Math.round(document.getElementById('distortion').value * 100) + '%';
+            document.getElementById('noiseValue').textContent = Math.round(document.getElementById('noiseLevel').value * 100) + '%';
+        }
+
+        // переключалка эффектов
+        function toggleEffect(effect) {
+            effects[effect] = !effects[effect];
+            document.getElementById(effect).classList.toggle('active');
+            updateStatus();
+        }
+
+        // клавиатура
+        const keyboard = document.getElementById('keyboard');
+        const keyboardLayout = [
+            {note: 'C', black: false}, {note: 'C#', black: true}, {note: 'D', black: false},
+            {note: 'D#', black: true}, {note: 'E', black: false}, {note: 'F', black: false},
+            {note: 'F#', black: true}, {note: 'G', black: false}, {note: 'G#', black: true},
+            {note: 'A', black: false}, {note: 'A#', black: true}, {note: 'B', black: false}
+        ];
+
+        // создания 4 октав (C2 от B5)
+        for (let oct = 2; oct <= 5; oct++) {
+            keyboardLayout.forEach(({note, black}) => {
+                const fullNote = `${note}${oct}`;
+                const key = document.createElement('div');
+                key.className = 'key' + (black ? ' black' : '');
+                key.dataset.note = fullNote;
+                
+                const label = document.createElement('span');
+                label.className = 'note-label';
+                label.textContent = note;
+                
+                const hint = document.createElement('div');
+                hint.className = 'keyboard-hint';
+                
+                // клавиатура подсказки
+                if (oct === 2) {
+                    const hints = {
+                        'C': 'Q', 'C#': 'W', 'D': 'E', 'D#': 'R', 'E': 'T',
+                        'F': 'Y', 'F#': 'U', 'G': 'I', 'G#': 'O', 'A': 'P',
+                        'A#': '[', 'B': ']'
+                    };
+                    hint.textContent = hints[note] || '';
+                } else if (oct === 3) {
+                    const hints = {
+                        'C': 'A', 'C#': 'S', 'D': 'D', 'D#': 'F', 'E': 'G',
+                        'F': 'H', 'F#': 'J', 'G': 'K', 'G#': 'L', 'A': ';',
+                        'A#': "'", 'B': 'Z'
+                    };
+                    hint.textContent = hints[note] || '';
+                } else if (oct === 4) {
+                    const hints = {
+                        'C': 'X', 'C#': 'C', 'D': 'V', 'D#': 'B', 'E': 'N',
+                        'F': 'M', 'F#': ',', 'G': '.', 'G#': '/'
+                    };
+                    hint.textContent = hints[note] || '';
+                }
+                
+                key.appendChild(label);
+                key.appendChild(hint);
+                
+                key.addEventListener('mousedown', (e) => {
+                    e.preventDefault();
+                    playNote(fullNote);
+                });
+                
+                key.addEventListener('mouseup', () => stopNote(fullNote));
+                key.addEventListener('mouseleave', () => stopNote(fullNote));
+                
+                keyboard.appendChild(key);
+            });
+        }
+
+        // воспроизведения
+        document.getElementById('glitch').addEventListener('click', () => toggleEffect('glitch'));
+        document.getElementById('ripTear').addEventListener('click', () => toggleEffect('ripTear'));
+        document.getElementById('djent').addEventListener('click', () => toggleEffect('djent'));
+
+        document.getElementById('modeDistortAcoustic').addEventListener('click', (e) => {
+            distortAcoustic = !distortAcoustic;
+            e.target.classList.toggle('active');
+            document.getElementById('modeNormal').classList.toggle('active', !distortAcoustic);
+        });
+
+        document.getElementById('modeNormal').addEventListener('click', (e) => {
+            distortAcoustic = false;
+            e.target.classList.add('active');
+            document.getElementById('modeDistortAcoustic').classList.remove('active');
+        });
+
+        //переключатель октав
+        document.querySelectorAll('.octave-label').forEach(label => {
+            label.addEventListener('click', () => {
+                const oct = parseInt(label.dataset.octave);
+                currentOctave = oct;
+                
+                document.querySelectorAll('.octave-label').forEach(l => l.classList.remove('active'));
+                label.classList.add('active');
+                updateStatus();
+            });
+        });
+
+        // события клавиатуры
+        document.addEventListener('keydown', (e) => {
+            if (e.repeat) return;
+            const key = e.key.toLowerCase();
+            
+            // переключалка через кнопки клавы
+            if (['1','2','3','4'].includes(key)) {
+                currentOctave = parseInt(key);
+                document.querySelectorAll('.octave-label').forEach(l => {
+                    l.classList.toggle('active', parseInt(l.dataset.octave) === currentOctave);
+                });
+                updateStatus();
+                return;
+            }
+            
+            const note = keyMap[currentOctave][key];
+            if (note) {
+                e.preventDefault();
+                playNote(note);
+            }
+        });
+
+        document.addEventListener('keyup', (e) => {
+            const key = e.key.toLowerCase();
+            const note = keyMap[currentOctave][key];
+            if (note) {
+                e.preventDefault();
+                stopNote(note);
+            }
+        });
+
+        // крутилки обновления
+        const sliders = ['oscMix', 'violinLevel', 'pianoLevel', 'subLevel', 'distortion', 'noiseLevel'];
+        sliders.forEach(id => {
+            document.getElementById(id).addEventListener('input', updateStatus);
+        });
+
+        // Initial update
+        updateStatus();
+
+        // Resume audio context on first interaction
+        document.addEventListener('click', () => {
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }, { once: true });
+    </script>
+</body>
+</html>
